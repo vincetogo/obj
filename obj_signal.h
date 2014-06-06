@@ -3,6 +3,7 @@
 // Passageways
 //
 // Created by Vince Tourangeau on 2013-11-26.
+// Copyright (c) 2014 Vincent Tourangeau.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
