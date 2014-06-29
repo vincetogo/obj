@@ -215,6 +215,16 @@ namespace obj
     };
     
     template<typename T>
+    struct compare<std::weak_ptr<T>>
+    {
+        static bool equal(const std::weak_ptr<T>& lhs,
+                          const std::weak_ptr<T>& rhs)
+        {
+            return lhs.lock() == rhs.lock();
+        }
+    };
+    
+    template<typename T>
     struct compare<std::function<T>>
     {
         static bool equal(const std::function<T>& lhs,
@@ -236,6 +246,11 @@ namespace obj
         using ConstCastType = typename Indirector::const_cast_type;
         using PtrType = typename Indirector::ptr_type;
         using ConstPtrType = typename Indirector::const_ptr_type;
+        
+        basic_property_base() :
+            _val()
+        {
+        }
         
         basic_property_base(const T& val) :
             _val(val)
@@ -318,12 +333,12 @@ namespace obj
             return &Indirector::cast((_dataObj->*_getter)());
         }
         
-        CastType operator*()
+        ReturnT operator*()
         {
             return Indirector::cast((_dataObj->*_getter)());
         }
         
-        ConstCastType operator*() const
+        ReturnT operator*() const
         {
             return Indirector::cast((_dataObj->*_getter)());
         }
@@ -393,6 +408,11 @@ namespace obj
     {
     
     public:
+        basic_property() :
+            basic_property_base<T,V>()
+        {
+        }
+        
         basic_property(const T& val) :
             basic_property_base<T,V>(val)
         {
@@ -448,6 +468,12 @@ namespace obj
         {
             return _changedSig2.connect(fn, args...);
         }
+        
+        void disconnect_all()
+        {
+            _changedSig.disconnect_all();
+            _changedSig2.disconnect_all();
+        }
 
     private:
         basic_property(const basic_property&);
@@ -457,9 +483,68 @@ namespace obj
         S<void(const T&, const T&)> _changedSig2;
     };
     
+    template<class T, class D, template<class> class S, class C>
+    class dynamic_signaller
+    {
+        friend D;
+        
+    public:
+        
+        C
+        connect(const std::function<void(const T&)>& fn)
+        {
+            return _changedSig.connect(fn);
+        }
+        
+        template<class... Args>
+        C
+        connect(const std::function<void(const T&)>& fn, Args... args)
+        {
+            return _changedSig.connect(fn, args...);
+        }
+        
+        C
+        connect(const std::function<void(const T&, const T&)>& fn)
+        {
+            return _changedSig2.connect(fn);
+        }
+        
+        template<class... Args>
+        C
+        connect(const std::function<void(const T&, const T&)>& fn, Args... args)
+        {
+            return _changedSig2.connect(fn, args...);
+        }
+        
+        void disconnect()
+        {
+            _changedSig.disconnect();
+            _changedSig2.disconnect();
+        }
+        
+    private:
+        
+        void send(const T& newVal)
+        {
+            _changedSig(newVal);
+        }
+        
+        void send(const T& newVal, const T& oldVal)
+        {
+            _changedSig2(newVal, oldVal);
+        }
+    
+    private:
+        
+        S<void(const T&)>           _changedSig;
+        S<void(const T&, const T&)> _changedSig2;
+    };
+    
     template<class T, class D, var_return_type V,
               template<class> class S, class C>
-    class basic_dynamic_property : public dynamic_property_base<T,D,V>
+    class basic_dynamic_property :
+        public dynamic_property_base<T,D,V>,
+        public dynamic_signaller<T, D, S, C>
     {
     public:
         using ConstReturnT =
@@ -467,7 +552,7 @@ namespace obj
         
         basic_dynamic_property(D* dataObj,
                                ConstReturnT(D::*getter)() const,
-                               bool(D::*setter)(const T&)) :
+                               void(D::*setter)(const T&)) :
             dynamic_property_base<T,D,V>(dataObj, getter),
             _setter(setter)
         {
@@ -476,39 +561,15 @@ namespace obj
         basic_dynamic_property<T,D,V,S,C>&
         operator=(const T& rhs)
         {
-            bool didChange = _dataObj->*_setter(rhs);
-            
-            if (didChange)
-            {
-                _changedSig();
-            }
+            (dynamic_property_base<T,D,V>::_dataObj->*_setter)(rhs);
             
             return *this;
-        }
-        
-        C
-        connect(const std::function<void()>& fn)
-        {
-            return _changedSig.connect(fn);
-        }
-        
-        template<class... Args>
-        C
-        connect(const std::function<void()>& fn, Args... args)
-        {
-            return _changedSig.connect(fn);
         }
         
     private:
         basic_dynamic_property(const basic_dynamic_property&);
         
-        S<void()>   _changedSig;
-        
-        D*          _dataObj;
-        
-        ConstReturnT(D::*_getter)() const;
-        
-        bool(D::*_setter)(const T&);
+        void(D::*_setter)(const T&);
     };
     
     template<typename T> using property =
