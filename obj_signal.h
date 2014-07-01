@@ -46,7 +46,6 @@ namespace obj
         
     };
     
-    
     class connection
     {
     
@@ -98,7 +97,7 @@ namespace obj
             return *this;
         }
         
-        template<typename T>
+        /*template<typename T>
         void add_host(std::shared_ptr<T>& hostObj) const
         {
             hostObj->signalHost.addConnection(*this);
@@ -114,7 +113,7 @@ namespace obj
         void add_host(T& hostObj) const
         {
             hostObj->signalHost.addConnection(*this);
-        }
+        }*/
         
         void disconnect() const
         {
@@ -171,6 +170,31 @@ namespace obj
         std::shared_ptr<details>    _details;
     };
     
+    
+    class observer
+    {
+        friend class signal_base;
+        
+    public:
+        virtual ~observer()
+        {
+            for (const auto& cnxn : _obj_signal_connections )
+            {
+                cnxn.disconnect();
+            }
+        }
+        
+        void add_connection(const connection& cnxn)
+        {
+            _obj_signal_connections.insert(cnxn);
+        }
+
+    private:
+        
+        std::set<connection> _obj_signal_connections;
+    };
+    
+    
     template<typename T>
     class signal_common;
     
@@ -219,7 +243,8 @@ namespace obj
         connection connect(const slot& fn, T& hostObj, bool fireOnce = false)
         {
             connection result = connect(fn, fireOnce);
-            hostObj.signalHost.addConnection(result);
+            //hostObj.signalHost.addConnection(result);
+            hostObj.add_connection(result);
             
             return result;
         }
@@ -228,7 +253,8 @@ namespace obj
         connection connect(const slot& fn, T* hostObj, bool fireOnce = false)
         {
             connection result = connect(fn, fireOnce);
-            hostObj->signalHost.addConnection(result);
+            //hostObj->signalHost.addConnection(result);
+            hostObj->add_connection(result);
             
             return result;
         }
@@ -237,7 +263,8 @@ namespace obj
         connection connect(const slot& fn, std::shared_ptr<T>& hostObj, bool fireOnce = false)
         {
             connection result = connect(fn, fireOnce);
-            hostObj->signalHost.addConnection(result);
+            //hostObj->signalHost.addConnection(result);
+            hostObj.add_connection(result);
             
             return result;
         }
