@@ -297,6 +297,63 @@ namespace obj
 
     };
     
+    template<class T, class D, template<class> class S, class C>
+    class dynamic_signaller
+    {
+        friend D;
+        
+    public:
+        
+        C
+        connect(const std::function<void(const T&)>& fn)
+        {
+            return _changedSig.connect(fn);
+        }
+        
+        template<class... Args>
+        C
+        connect(const std::function<void(const T&)>& fn, Args... args)
+        {
+            return _changedSig.connect(fn, args...);
+        }
+        
+        C
+        connect(const std::function<void(const T&, const T&)>& fn)
+        {
+            return _changedSig2.connect(fn);
+        }
+        
+        template<class... Args>
+        C
+        connect(const std::function<void(const T&, const T&)>& fn, Args... args)
+        {
+            return _changedSig2.connect(fn, args...);
+        }
+        
+        void disconnect()
+        {
+            _changedSig.disconnect();
+            _changedSig2.disconnect();
+        }
+        
+    private:
+        
+        void send(const T& newVal)
+        {
+            _changedSig(newVal);
+        }
+        
+        void send(const T& newVal, const T& oldVal)
+        {
+            _changedSig2(newVal, oldVal);
+        }
+        
+    private:
+        
+        S<void(const T&)>           _changedSig;
+        S<void(const T&, const T&)> _changedSig2;
+    };
+    
     
     template<class T, class D, var_return_type V>
     class dynamic_property_base
@@ -351,7 +408,6 @@ namespace obj
         ConstReturnT(D::*_getter)() const;
     };
     
-    
     // const properties
     template<class T, var_return_type V>
     class const_basic_property : public basic_property_base<T,V>
@@ -375,8 +431,9 @@ namespace obj
     };
     
     
-    template<class T, class D, var_return_type V>
-    class const_basic_dynamic_property : public dynamic_property_base<T,D,V>
+    template<class T, class D, var_return_type V, template<class> class S, class C>
+    class const_basic_dynamic_property : public dynamic_property_base<T,D,V>,
+                                         public dynamic_signaller<T,D,S,C>
     {
         
     public:
@@ -396,7 +453,7 @@ namespace obj
         
     private:
         
-        const_basic_dynamic_property<T,D,V>&
+        const_basic_dynamic_property<T,D,V,S,C>&
         operator=(const T& rhs);
     };
     
@@ -483,63 +540,6 @@ namespace obj
         S<void(const T&, const T&)> _changedSig2;
     };
     
-    template<class T, class D, template<class> class S, class C>
-    class dynamic_signaller
-    {
-        friend D;
-        
-    public:
-        
-        C
-        connect(const std::function<void(const T&)>& fn)
-        {
-            return _changedSig.connect(fn);
-        }
-        
-        template<class... Args>
-        C
-        connect(const std::function<void(const T&)>& fn, Args... args)
-        {
-            return _changedSig.connect(fn, args...);
-        }
-        
-        C
-        connect(const std::function<void(const T&, const T&)>& fn)
-        {
-            return _changedSig2.connect(fn);
-        }
-        
-        template<class... Args>
-        C
-        connect(const std::function<void(const T&, const T&)>& fn, Args... args)
-        {
-            return _changedSig2.connect(fn, args...);
-        }
-        
-        void disconnect()
-        {
-            _changedSig.disconnect();
-            _changedSig2.disconnect();
-        }
-        
-    private:
-        
-        void send(const T& newVal)
-        {
-            _changedSig(newVal);
-        }
-        
-        void send(const T& newVal, const T& oldVal)
-        {
-            _changedSig2(newVal, oldVal);
-        }
-    
-    private:
-        
-        S<void(const T&)>           _changedSig;
-        S<void(const T&, const T&)> _changedSig2;
-    };
-    
     template<class T, class D, var_return_type V,
               template<class> class S, class C>
     class basic_dynamic_property :
@@ -590,9 +590,9 @@ namespace obj
                                obj::signal, obj::connection>;
 
     template<typename T, typename D> using const_dynamic_property =
-        const_basic_dynamic_property<T, D, var_return_type::copy>;
+        const_basic_dynamic_property<T, D, var_return_type::copy, obj::signal, obj::connection>;
     template<typename T, typename D> using const_dynamic_ref_property =
-        const_basic_dynamic_property<T, D, var_return_type::ref>;
+        const_basic_dynamic_property<T, D, var_return_type::ref, obj::signal, obj::connection>;
 }
 
 #endif

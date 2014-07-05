@@ -97,24 +97,6 @@ namespace obj
             return *this;
         }
         
-        /*template<typename T>
-        void add_host(std::shared_ptr<T>& hostObj) const
-        {
-            hostObj->signalHost.addConnection(*this);
-        }
-        
-        template<typename T>
-        void add_host(T* hostObj) const
-        {
-            hostObj->signalHost.addConnection(*this);
-        }
-        
-        template<typename T>
-        void add_host(T& hostObj) const
-        {
-            hostObj->signalHost.addConnection(*this);
-        }*/
-        
         void disconnect() const
         {
             if (valid())
@@ -243,7 +225,6 @@ namespace obj
         connection connect(const slot& fn, T& hostObj, bool fireOnce = false)
         {
             connection result = connect(fn, fireOnce);
-            //hostObj.signalHost.addConnection(result);
             hostObj.add_connection(result);
             
             return result;
@@ -253,7 +234,6 @@ namespace obj
         connection connect(const slot& fn, T* hostObj, bool fireOnce = false)
         {
             connection result = connect(fn, fireOnce);
-            //hostObj->signalHost.addConnection(result);
             hostObj->add_connection(result);
             
             return result;
@@ -263,7 +243,6 @@ namespace obj
         connection connect(const slot& fn, std::shared_ptr<T>& hostObj, bool fireOnce = false)
         {
             connection result = connect(fn, fireOnce);
-            //hostObj->signalHost.addConnection(result);
             hostObj.add_connection(result);
             
             return result;
