@@ -475,6 +475,11 @@ namespace obj
         {
         }
         
+        basic_property(const basic_property& other) :
+            basic_property_base<T, V>(other)
+        {
+        }
+        
         basic_property<T,V,S,C>&
         operator=(const T& rhs)
         {
@@ -531,9 +536,6 @@ namespace obj
             _changedSig.disconnect_all();
             _changedSig2.disconnect_all();
         }
-
-    private:
-        basic_property(const basic_property&);
 
     protected:
         S<void(const T&)>           _changedSig;
