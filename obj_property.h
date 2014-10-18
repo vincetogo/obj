@@ -79,133 +79,6 @@ namespace obj
     };
     
     template<typename T>
-    struct indirection_operator
-    {
-        typedef T& cast_type;
-        typedef const T& const_cast_type;
-        typedef T* ptr_type;
-        typedef const T* const_ptr_type;
-        
-        static cast_type
-        cast(T& var)
-        {
-            return var;
-        }
-
-        static const_cast_type
-        cast(const T& var)
-        {
-            return var;
-        }
-    };
-    
-    template<typename T>
-    struct indirection_operator<T&>
-    {
-        typedef T& cast_type;
-        typedef const T& const_cast_type;
-        typedef T* ptr_type;
-        typedef const T* const_ptr_type;
-        
-        static cast_type
-        cast(T& var)
-        {
-            return var;
-        }
-        
-        static const_cast_type
-        cast(const T& var)
-        {
-            return var;
-        }
-    };
-
-    
-    template<typename T>
-    struct indirection_operator<T*>
-    {
-        typedef T& cast_type;
-        typedef const T& const_cast_type;
-        typedef T* ptr_type;
-        typedef const T* const_ptr_type;
-        
-        static cast_type
-        cast(T* var)
-        {
-            return *var;
-        }
-        
-        static const_cast_type
-        cast(const T* var)
-        {
-            return *var;
-        }
-    };
-    
-    template<typename T>
-    struct indirection_operator<std::shared_ptr<T>>
-    {
-        typedef T& cast_type;
-        typedef const T& const_cast_type;
-        typedef T* ptr_type;
-        typedef const T* const_ptr_type;
-        
-        static cast_type
-        cast(std::shared_ptr<T>& var)
-        {
-            return *var;
-        }
-        
-        static const_cast_type
-        cast(const std::shared_ptr<T>& var)
-        {
-            return *var;
-        }
-    };
-    
-    template<typename T>
-    struct indirection_operator<std::shared_ptr<T>&>
-    {
-        typedef T& cast_type;
-        typedef const T& const_cast_type;
-        typedef T* ptr_type;
-        typedef const T* const_ptr_type;
-        
-        static cast_type
-        cast(std::shared_ptr<T>& var)
-        {
-            return *var;
-        }
-        
-        static const_cast_type
-        cast(const std::shared_ptr<T>& var)
-        {
-            return *var;
-        }
-    };
-
-    template<typename T>
-    struct indirection_operator<std::weak_ptr<T>>
-    {
-        typedef T& cast_type;
-        typedef const T& const_cast_type;
-        typedef T* ptr_type;
-        typedef const T* const_ptr_type;
-        
-        static cast_type
-        cast(std::weak_ptr<T>& var)
-        {
-            return *var.lock();
-        }
-        
-        static const_cast_type
-        cast(const std::weak_ptr<T>& var)
-        {
-            return *var.lock();
-        }
-    };
-    
-    template<typename T>
     struct compare
     {
         static bool equal(const T& lhs, const T& rhs)
@@ -241,11 +114,6 @@ namespace obj
     public:
         using ReturnT = typename return_type<T,V>::type;
         using ConstReturnT = typename const_return_type<T,V>::type;
-        using Indirector = indirection_operator<T>;
-        using CastType = typename Indirector::cast_type;
-        using ConstCastType = typename Indirector::const_cast_type;
-        using PtrType = typename Indirector::ptr_type;
-        using ConstPtrType = typename Indirector::const_ptr_type;
         
         basic_property_base() :
             _val()
@@ -272,24 +140,14 @@ namespace obj
             return _val;
         }
         
-        PtrType operator->()
+        ReturnT operator()()
         {
-            return &Indirector::cast(_val);
+            return _val;
         }
         
-        ConstPtrType operator->() const
+        ConstReturnT operator()() const
         {
-            return &Indirector::cast(_val);
-        }
-        
-        CastType operator*()
-        {
-            return Indirector::cast(_val);
-        }
-        
-        ConstCastType operator*() const
-        {
-            return Indirector::cast(_val);
+            return _val;
         }
 
     protected:
@@ -362,11 +220,6 @@ namespace obj
         
         using ReturnT = typename return_type<T,V>::type;
         using ConstReturnT = typename const_return_type<T,V>::type;
-        using Indirector = indirection_operator<T>;
-        using CastType = typename Indirector::cast_type;
-        using ConstCastType = typename Indirector::const_cast_type;
-        using PtrType = typename Indirector::ptr_type;
-        using ConstPtrType = typename Indirector::const_ptr_type;
         
         dynamic_property_base(D* dataObj,
                               ConstReturnT(D::*getter)() const) :
@@ -385,19 +238,14 @@ namespace obj
             return (_dataObj->*_getter)();
         }
         
-        ConstPtrType operator->() const
+        ReturnT operator()()
         {
-            return &Indirector::cast((_dataObj->*_getter)());
+            return (_dataObj->*_getter)();
         }
         
-        ReturnT operator*()
+        ConstReturnT operator()() const
         {
-            return Indirector::cast((_dataObj->*_getter)());
-        }
-        
-        ReturnT operator*() const
-        {
-            return Indirector::cast((_dataObj->*_getter)());
+            return (_dataObj->*_getter)();
         }
         
     protected:
