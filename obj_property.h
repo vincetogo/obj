@@ -423,12 +423,12 @@ namespace obj
     };
     
     template<typename T> using property =
-        basic_property<T, var_return_type::copy, obj::signal, obj::connection>;
+        basic_property<T, var_return_type::ref, obj::signal, obj::connection>;
     template<typename T> using ref_property =
         basic_property<T, var_return_type::ref, obj::signal, obj::connection>;
     
     template<typename T> using const_property =
-        const_basic_property<T, var_return_type::copy>;
+        const_basic_property<T, var_return_type::ref>;
     template<typename T> using const_ref_property =
         const_basic_property<T, var_return_type::ref>;
     
@@ -444,5 +444,17 @@ namespace obj
     template<typename T, typename D> using const_dynamic_ref_property =
         const_basic_dynamic_property<T, D, var_return_type::ref, obj::signal, obj::connection>;
 }
+
+#ifdef OBJ_ALLOW_SELF
+
+#ifndef __OBJC__
+
+#ifndef self
+#define self (*this)
+#endif
+
+#endif
+
+#endif
 
 #endif
