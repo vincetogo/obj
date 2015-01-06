@@ -93,21 +93,7 @@ namespace obj
     }
     
     template<class C1, class C2, class Fn>
-    C1 transform(const C2& source, Fn fn)
-    {
-        C1 result;
-        std::insert_iterator<C1> insert(result, result.begin());
-        
-        std::transform(source.begin(), source.end(), insert, fn);
-        
-        return result;
-    }
-    
-    template<class C1, class C2, class Fn, class Pred>
-    C1 transform_and_copy_if(const C2& source, Fn fn, Pred pred)
-    {
-        return copy_if(transform<C1>(source, fn), pred);
-    }
+    C1 transform(const C2& source, Fn fn);
     
     template<class M>
     std::set<typename M::mapped_type> range(const M& source)
@@ -129,6 +115,23 @@ namespace obj
     {
         auto newEnd = std::remove_if(c.begin(), c.end(), pred);
         c.erase(newEnd, c.end());
+    }
+    
+    template<class C1, class C2, class Fn>
+    C1 transform(const C2& source, Fn fn)
+    {
+        C1 result;
+        std::insert_iterator<C1> insert(result, result.begin());
+        
+        std::transform(source.begin(), source.end(), insert, fn);
+        
+        return result;
+    }
+    
+    template<class C1, class C2, class Fn, class Pred>
+    C1 transform_and_copy_if(const C2& source, Fn fn, Pred pred)
+    {
+        return copy_if(transform<C1>(source, fn), pred);
     }
     
 #ifndef DEBUG
