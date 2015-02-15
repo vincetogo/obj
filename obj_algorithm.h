@@ -85,7 +85,19 @@ namespace obj
         
         return result;
     }
+
+    template <class C, class T>
+    typename C::const_iterator find(const C& c, const T& val)
+    {
+        return std::find(c.begin(), c.end(), val);
+    }
     
+    template <class C, class T>
+    bool contains(const C& c, const T& val)
+    {
+        return find(c, val) != c.end();
+    }
+
     template <class C, class Pred>
     typename C::iterator find_if(const C& c, Pred pred)
     {
