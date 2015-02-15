@@ -61,7 +61,19 @@ namespace obj
         
         return set_operation(a, b, std::set_union<InputIterator, InputIterator, OutputIterator>);
     }
-    
+
+    template<class C>
+    C copy(const C& source)
+    {
+        C result;
+        
+        std::insert_iterator<C> insert(result, result.begin());
+        
+        copy(source.begin(), source.end(), insert);
+        
+        return result;
+    }
+
     template<class C, class Pred>
     C copy_if(const C& source, Pred pred)
     {
@@ -127,7 +139,13 @@ namespace obj
         
         return result;
     }
-    
+
+    template<class C1, class C2, class Fn>
+    C1 transform_and_copy(const C2& source, Fn fn)
+    {
+        return copy(transform<C1>(source, fn));
+    }
+
     template<class C1, class C2, class Fn, class Pred>
     C1 transform_and_copy_if(const C2& source, Fn fn, Pred pred)
     {
