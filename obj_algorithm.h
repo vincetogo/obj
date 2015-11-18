@@ -109,7 +109,7 @@ namespace obj
     {
         std::for_each(c.begin(), c.end(), fn);
     }
-    
+        
     template<class C1, class C2>
     typename C1::iterator find_first_of(const C1& c1, const C2& c2)
     {
